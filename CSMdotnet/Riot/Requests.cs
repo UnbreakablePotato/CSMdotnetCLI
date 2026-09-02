@@ -21,8 +21,8 @@ namespace CSMdotnet.Riot
     public class PuuidService : Services
     {
 
-        private string gameName;
-        private string tagLine;
+        private string gameName { get; set; }
+        private string tagLine { get; set; }
 
         public PuuidService(string GameName, string TagLine)
         {
@@ -75,7 +75,7 @@ namespace CSMdotnet.Riot
     */
     public class EntriesService : Services
     {
-        private string puuid;
+        private string puuid { get; set; }
         public EntriesService(string Puuid)
         {
             puuid = Puuid;
@@ -103,8 +103,8 @@ namespace CSMdotnet.Riot
      */
     public class GameNameTagLineService : Services
     {
-        private string puuid;
-        
+        private string puuid { get; set; }
+
         public GameNameTagLineService(string Puuid)
         {
             puuid = Puuid;
@@ -112,7 +112,7 @@ namespace CSMdotnet.Riot
 
         public async Task<BaseInfo?> GetGameNameTagAsync()
         {
-            string fullUrl = "/riot/account/v1/accounts/by-puuid/" + puuid;
+            string fullUrl = "https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/" + puuid;
 
             try
             {
@@ -156,9 +156,9 @@ namespace CSMdotnet.Riot
      */
     public class LadderService : Services
     {
-        public async Task<Ladder?> GetLadderAsync()
+        public async Task<Ladder?> GetLadderAsync(string region)
         {
-            string fullUrl = "https://euw1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5";
+            string fullUrl = "https://" + region + ".api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5";
 
             try
             {
