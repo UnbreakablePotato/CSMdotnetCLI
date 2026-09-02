@@ -28,24 +28,32 @@ public class Program
             string[] commandInput;
 
             commandInput = Repl.cleanInput(userInput);
-
-            if (commandInput[0] == "quit")
+            try
             {
-                Environment.Exit(1);
-            }
-            if (commandInput[0] == "search")
-            {
-                string? gameName = commandInput[1];
-                string? tagLine = commandInput[2];
+                if (commandInput[0] == "quit")
+                {
+                    Environment.Exit(1);
+                }
+                if (commandInput[0] == "search")
+                {
+                    string? gameName = commandInput[1];
+                    string? tagLine = commandInput[2];
 
-                await Commands.Search(gameName, tagLine);
-            }
-            if (commandInput[0] == "ladder")
-            {
-                string? region = commandInput[1];
+                    await Commands.Search(gameName, tagLine);
+                }
+                if (commandInput[0] == "ladder")
+                {
+                    string? region = commandInput[1];
 
-                await Commands.Ladder(region);
+                    await Commands.Ladder(region);
+                }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Exception caught: {e}");
+                continue;
+            }
+            
 
         }
     }
