@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http.Json;
+using System.Runtime.CompilerServices;
 using System.Text;
 
-public record User(string? Puuid, string? GameName, string? TagLine);
+//public record User(string? Puuid, string? GameName, string? TagLine);
 
 namespace CSMdotnet
 {
@@ -16,16 +17,67 @@ namespace CSMdotnet
             var puuid = new CSMdotnet.Riot.PuuidService(GameName, TagLine);
 
 
-            CSMdotnet.Riot.GetPuuid? req = await puuid.GetPuuidAsync();
+            CSMdotnet.Riot.BaseInfo? req = await puuid.GetPuuidAsync();
 
             var entry = new CSMdotnet.Riot.EntriesService(req.Puuid);
 
             List<CSMdotnet.Riot.Entry>? entriesRes = await entry.GetLeagueEntriesAsync();
 
             Console.WriteLine($"{GameName} {TagLine}");
-            Console.WriteLine($"{entriesRes[0].Rank} {entriesRes[0].Tier} {entriesRes[0].LeaguePoints} LP");
-            Console.WriteLine($"{entriesRes[0].Wins} {entriesRes[0].Losses}");
-            Console.WriteLine($"Winrate: {((double)entriesRes[0].Wins / (double)(entriesRes[0].Wins + (double)entriesRes[0].Losses))*100.0}%");
+            Console.WriteLine($"{entriesRes[0].Tier} {entriesRes[0].Rank} {entriesRes[0].LeaguePoints} LP");
+            Console.WriteLine($"{entriesRes[0].Wins} Wins {entriesRes[0].Losses} Losses");
+            if (entriesRes[0].Wins == 0)
+            {
+                Console.WriteLine("Winrate: 0%");
+            }else
+            {
+                Console.WriteLine($"Winrate: {(entriesRes[0].Wins / (entriesRes[0].Wins + entriesRes[0].Losses)) * 100}%");
+            }
+            
+
+        }
+
+        public static async Task Ladder(string region)
+        {
+            string regionTag;
+
+            switch (region) 
+            {
+                case "euw":
+                    regionTag = "euw1";
+                    break;
+                case "eun":
+                    regionTag = "eun1";
+                    break;
+                case "na":
+                    regionTag = "na1";
+                    break;
+                case "kr":
+                    regionTag = "kr";
+                    break;
+                default:
+                    regionTag = "euw1";
+                    break;
+            }
+
+            var reqObject = new CSMdotnet.Riot.LadderService();
+
+            var ladderObject = await reqObject.GetLadderAsync(regionTag);
+
+            for (var i = 0; i < ladderObject.Entries.Count; i++)
+            {
+                var reqBaseObject = new CSMdotnet.Riot.GameNameTagLineService(ladderObject.Entries[i].Puuid);
+
+                var BaseInfoObject = await reqBaseObject.GetGameNameTagAsync();
+
+                Console.WriteLine($"Ladder Rank: {i+1} {BaseInfoObject.GameName} {BaseInfoObject.TagLine}");
+                Console.WriteLine($"{ladderObject.Entries[i].LeaguePoints} LP : Wins {ladderObject.Entries[i].Wins} : Losses {ladderObject.Entries[i].Losses}");
+                Console.WriteLine($"Winrate {((double)ladderObject.Entries[i].Wins / (ladderObject.Entries[i].Wins + ladderObject.Entries[i].Losses)) * 100:F0}%");
+                Console.WriteLine("=======================================");
+                Console.WriteLine("=======================================\n");
+
+                //Console.WriteLine($"");
+            }
 
         }
 
@@ -40,9 +92,10 @@ namespace CSMdotnet
         }
 
     }
+}
 
 
-    public class SearchUserService
+   /* public class SearchUserService
     {
         private static readonly HttpClient _httpClient = new HttpClient();
 
@@ -63,4 +116,4 @@ namespace CSMdotnet
         }
 
     }
-}
+}*/
