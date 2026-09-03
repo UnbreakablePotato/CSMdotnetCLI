@@ -13,5 +13,19 @@ namespace CSMdotnet
 
             return res;
         }
+
+        public static string[] cleanMatchIDS(string[] matches)
+        {
+            string[] res = new string [matches.Length];
+
+            for (var i = 0; i < matches.Length; i++)
+            {
+                res[i] = matches[i].Replace("[", "");
+                res[i] = matches[i].Replace("]", "");
+                res[i] = matches[i].Replace("\"", "");
+            }
+
+            return res;
+        }
     }
 }
