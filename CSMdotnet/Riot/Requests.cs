@@ -1,8 +1,9 @@
-﻿using System;
+﻿using DotNetEnv;
+using System;
 using System.Collections.Generic;
 using System.Net.Http.Json;
 using System.Text;
-using DotNetEnv;
+using System.Text.Json.Serialization;
 
 namespace CSMdotnet.Riot
 {
@@ -171,7 +172,7 @@ namespace CSMdotnet.Riot
 
                 return await response.Content.ReadFromJsonAsync<Ladder>();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine($"API Request failed for Ladder: {e.Message}");
                 return null;
@@ -179,5 +180,176 @@ namespace CSMdotnet.Riot
 
         }
 
+    }
+
+    /*
+     * Gets a list of matches based on a puuid and an amount
+     * from the /lol/match/v5/matches/by-puuid/{puuid}/ids endpoint
+     */
+    public record MatchIDS(List<string>? Matches);
+
+    public class MatchIDService : Services
+    {
+        public async Task<MatchIDS?> GetMatchIDSAsync(string region, string puuid, int amount)
+        {
+            string fullUrl = "https://" + region + ".api.riotgames.com/lol/match/v5/matches/by-puuid/" + puuid + "/ids?start=0&count=" + amount;
+
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, fullUrl);
+
+                request.Headers.Add("X-Riot-Token", apiKey);
+
+                using var response = await SharedClient.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+
+                return await response.Content.ReadFromJsonAsync<MatchIDS>();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine($"API Request failed for Ladder: {e.Message}");
+                return null;
+            }
+
+        }
+    }
+public record RiotMatchResponse(
+    Metadata Metadata,
+    Info Info
+);
+
+    public record Metadata(
+        string DataVersion,
+        string MatchId,
+        IReadOnlyList<string> Participants
+    );
+
+    public record Info(
+        string EndOfGameResult,
+        long GameCreation,
+        long GameDuration,
+        long GameEndTimestamp,
+        long GameId,
+        string GameMode,
+        string GameName,
+        long GameStartTimestamp,
+        string GameType,
+        string GameVersion,
+        int MapId,
+        IReadOnlyList<Participant> Participants,
+        string PlatformId,
+        int QueueId,
+        IReadOnlyList<Team> Teams,
+        string TournamentCode
+    );
+
+    public record Team(
+        IReadOnlyList<Ban> Bans,
+        Objectives Objectives,
+        int TeamId,
+        bool Win
+    );
+
+    public record Ban(
+        int ChampionId,
+        int PickTurn
+    );
+
+    public record Objectives(
+        Objective Atakhan,
+        Objective Baron,
+        Objective Champion,
+        Objective Dragon,
+        Objective Horde,
+        Objective Inhibitor,
+        Objective RiftHerald,
+        Objective Tower
+    );
+
+    public record Objective(
+        bool First,
+        int Kills
+    );
+
+    public record Participant(
+        int Assists,
+        int ChampLevel,
+        int ChampionId,
+        string ChampionName,
+        int Deaths,
+        int GoldEarned,
+        int GoldSpent,
+        int Item0,
+        int Item1,
+        int Item2,
+        int Item3,
+        int Item4,
+        int Item5,
+        int Item6,
+        int Kills,
+        string Lane,
+        string Puuid,
+        string RiotIdGameName,
+        string RiotIdTagline,
+        string Role,
+        string SummonerName,
+        int TotalDamageDealtToChampions,
+        int TotalDamageTaken,
+        int TotalMinionsKilled,
+        int VisionScore,
+        bool Win,
+        Perks Perks,
+
+        // Riot adds new fields constantly. This dictionary catches ANY properties 
+        // that are in the JSON but not explicitly defined in this record.
+        [property: JsonExtensionData] Dictionary<string, System.Text.Json.JsonElement>? ExtensionData = null
+    );
+
+    public record Perks(
+        StatPerks StatPerks,
+        IReadOnlyList<PerkStyle> Styles
+    );
+
+    public record StatPerks(
+        int Defense,
+        int Flex,
+        int Offense
+    );
+
+    public record PerkStyle(
+        string Description,
+        IReadOnlyList<PerkSelection> Selections,
+        [property: JsonPropertyName("style")] int StyleId
+    );
+
+    public record PerkSelection(
+        int Perk,
+        int Var1,
+        int Var2,
+        int Var3
+    );
+
+    public class MatchDataService : Services
+    {
+        public async Task<RiotMatchResponse?> GetRiotMatchDataAsync()
+        {
+            string fullUrl = "";
+
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, fullUrl);
+
+                request.Headers.Add("X-Riot-Token", apiKey);
+
+                using var response = await SharedClient.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+
+                return await response.Content.ReadFromJsonAsync<RiotMatchResponse>();
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+        }
     }
 }
