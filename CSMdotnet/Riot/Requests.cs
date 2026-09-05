@@ -186,13 +186,33 @@ namespace CSMdotnet.Riot
      * Gets a list of matches based on a puuid and an amount
      * from the /lol/match/v5/matches/by-puuid/{puuid}/ids endpoint
      */
-    public record MatchIDS(List<string>? Matches);
+    //public record MatchIDS(List<string>? Matches);
 
     public class MatchIDService : Services
     {
-        public async Task<MatchIDS?> GetMatchIDSAsync(string region, string puuid, int amount)
+        public async Task<List<string>?> GetMatchIDSAsync(string region, string puuid, int amount)
         {
-            string fullUrl = "https://" + region + ".api.riotgames.com/lol/match/v5/matches/by-puuid/" + puuid + "/ids?start=0&count=" + amount;
+            string regionTag;
+
+            switch (region)
+            {
+                case "euw":
+                    regionTag = "europe";
+                    break;
+                case "eun":
+                    regionTag = "europe";
+                    break;
+                case "na":
+                    regionTag = "americas";
+                    break;
+                case "kr":
+                    regionTag = "asia";
+                    break;
+                default:
+                    regionTag = "europe";
+                    break;
+            }
+            string fullUrl = "https://" + regionTag + ".api.riotgames.com/lol/match/v5/matches/by-puuid/" + puuid + "/ids?start=0&count=" + amount;
 
             try
             {
@@ -203,11 +223,11 @@ namespace CSMdotnet.Riot
                 using var response = await SharedClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();
 
-                return await response.Content.ReadFromJsonAsync<MatchIDS>();
+                return await response.Content.ReadFromJsonAsync<List<string>>();
             }
             catch(Exception e)
             {
-                Console.WriteLine($"API Request failed for Ladder: {e.Message}");
+                Console.WriteLine($"API Request failed for MatchIDService: {e.Message}");
                 return null;
             }
 
@@ -298,11 +318,11 @@ public record RiotMatchResponse(
         int TotalMinionsKilled,
         int VisionScore,
         bool Win,
-        Perks Perks,
+        Perks Perks
 
         // Riot adds new fields constantly. This dictionary catches ANY properties 
         // that are in the JSON but not explicitly defined in this record.
-        [property: JsonExtensionData] Dictionary<string, System.Text.Json.JsonElement>? ExtensionData = null
+        //[property: JsonExtensionData] Dictionary<string, System.Text.Json.JsonElement>? ExtensionData = null
     );
 
     public record Perks(
@@ -329,11 +349,35 @@ public record RiotMatchResponse(
         int Var3
     );
 
+    /* Gets match data from a puuid from
+     * the  
+     */
+
     public class MatchDataService : Services
     {
-        public async Task<RiotMatchResponse?> GetRiotMatchDataAsync()
+        public async Task<RiotMatchResponse?> GetRiotMatchDataAsync(string region, string matchID)
         {
-            string fullUrl = "";
+            string regionTag;
+
+            switch (region)
+            {
+                case "euw":
+                    regionTag = "europe";
+                    break;
+                case "eun":
+                    regionTag = "europe";
+                    break;
+                case "na":
+                    regionTag = "americas";
+                    break;
+                case "kr":
+                    regionTag = "asia";
+                    break;
+                default:
+                    regionTag = "europe";
+                    break;
+            }
+            string fullUrl = "https://" + regionTag + ".api.riotgames.com/lol/match/v5/matches/" + matchID;
 
             try
             {
@@ -348,6 +392,7 @@ public record RiotMatchResponse(
             }
             catch (Exception e)
             {
+                Console.WriteLine($"{e}");
                 return null;
             }
         }
