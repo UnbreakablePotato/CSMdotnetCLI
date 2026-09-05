@@ -14,11 +14,11 @@ namespace CSMdotnet
             return res;
         }
 
-        public static string[] cleanMatchIDS(string[] matches)
+        public static string[] cleanMatchIDS(List<string>? matches)
         {
-            string[] res = new string [matches.Length];
+            string[] res = new string [matches.Count];
 
-            for (var i = 0; i < matches.Length; i++)
+            for (var i = 0; i < matches.Count; i++)
             {
                 res[i] = matches[i].Replace("[", "");
                 res[i] = matches[i].Replace("]", "");
