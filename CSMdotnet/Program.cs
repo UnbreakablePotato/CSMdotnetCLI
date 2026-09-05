@@ -36,10 +36,11 @@ public class Program
                 }
                 if (commandInput[0] == "search")
                 {
-                    string? gameName = commandInput[1];
-                    string? tagLine = commandInput[2];
+                    string? region = commandInput[1];
+                    string? gameName = commandInput[2];
+                    string? tagLine = commandInput[3];
 
-                    await Commands.Search(gameName, tagLine);
+                    await Commands.Search(region, gameName, tagLine);
                 }
                 if (commandInput[0] == "ladder")
                 {
