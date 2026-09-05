@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CSMdotnet.Riot;
+using System;
 using System.Collections.Generic;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
@@ -11,17 +12,39 @@ namespace CSMdotnet
     internal class Commands
     {
 
-        public static async Task Search(string GameName, string TagLine)
+        public static async Task Search(string region, string GameName, string TagLine)
         {
 
             var puuid = new CSMdotnet.Riot.PuuidService(GameName, TagLine);
 
-
             CSMdotnet.Riot.BaseInfo? req = await puuid.GetPuuidAsync();
+
+            if (req == null || string.IsNullOrEmpty(req.Puuid))
+            {
+                Console.WriteLine($"Could not find player: {GameName}#{TagLine}");
+                return;
+            }
 
             var entry = new CSMdotnet.Riot.EntriesService(req.Puuid);
 
             List<CSMdotnet.Riot.Entry>? entriesRes = await entry.GetLeagueEntriesAsync();
+
+            var matchIDReq = new CSMdotnet.Riot.MatchIDService();
+
+            List<string>? match = await matchIDReq.GetMatchIDSAsync(region, req.Puuid, 1);
+
+            var cleanMatchId = Repl.cleanMatchIDS(match);
+
+            var dataRequest = new CSMdotnet.Riot.MatchDataService();
+
+            RiotMatchResponse? matchData = await dataRequest.GetRiotMatchDataAsync(region, cleanMatchId[0]);
+
+            if (matchData?.Info?.Participants == null)
+            {
+                Console.WriteLine($"Match id: {cleanMatchId[0]}");
+                Console.WriteLine("Failed to load match details.");
+                return;
+            }
 
             Console.WriteLine($"{GameName} {TagLine}");
             Console.WriteLine($"{entriesRes[0].Tier} {entriesRes[0].Rank} {entriesRes[0].LeaguePoints} LP");
@@ -31,10 +54,33 @@ namespace CSMdotnet
                 Console.WriteLine("Winrate: 0%");
             }else
             {
-                Console.WriteLine($"Winrate: {(entriesRes[0].Wins / (entriesRes[0].Wins + entriesRes[0].Losses)) * 100}%");
+                Console.WriteLine($"Winrate: {((double)entriesRes[0].Wins / (entriesRes[0].Wins + entriesRes[0].Losses)) * 100:F0}%");
             }
-            
 
+            /*
+             match data requesten fejler ggs
+             
+             */
+            int idx = 0;
+
+            for(var i=0;i< matchData.Info.Participants.Count; i++)
+            {
+                if (req.Puuid == matchData.Info.Participants[i].Puuid)
+                {
+                    idx = i;
+                    break;
+                }
+            }
+            if (matchData.Info.Participants[idx].Win)
+            {
+                Console.WriteLine("Latest Game: Win");
+            }
+            else
+            {
+                Console.WriteLine("Latest Game: Loss");
+            }
+            Console.WriteLine($"{matchData.Info.Participants[idx].ChampionName} : {matchData.Info.Participants[idx].Kills}/{matchData.Info.Participants[idx].Deaths}/{matchData.Info.Participants[idx].Assists}");
+            
         }
 
         public static async Task Ladder(string region)
